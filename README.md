@@ -26,3 +26,16 @@ Required appsettings configuration
 - All properties of Book is available to search at api.
 - When querying against database application is using WITH (NOLOCK)
 - Application uses Dapper in order to make it easy to query.
+
+## Additional
+  - The application has a feature to send message to RabbitMq. The configuration goes as:
+  - The queueName is "BookSearch" as fixed constant
+  
+```bash
+"RabbitMqConfiguration": {
+    "HostName": "localhost",
+    "Username": "guest",
+    "Password": "guest",
+    "Port": 5672
+  }
+```

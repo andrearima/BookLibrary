@@ -2,8 +2,8 @@
 using BookLibrary.Royal.Domain.Repository;
 using BookLibrary.Royal.Infrastructure;
 using BookLibrary.Royal.Infrastructure.CacheDecorator;
+using BookLibrary.Royal.Infrastructure.Messaging;
 using BookLibrary.Royal.Infrastructure.Repository;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.ObjectPool;
 using System.Data;
@@ -13,15 +13,32 @@ namespace BookLibrary.Royal.Setup;
 
 internal static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
+    internal static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddApps()
+                       .ConfigureCaching(configuration)
+                       .AddInfrastructure(configuration);
+    }
+
+    internal static IServiceCollection AddApps(this IServiceCollection services)
+    {
+        return services.AddScoped<IBookApp, BookApp>();
+    }
+
+    internal static IServiceCollection ConfigureCaching(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<CacheConfiguration>(configuration.GetSection("Cache"));
 
-        services.AddScoped<IBookApp, BookApp>();
+        return services.AddMemoryCache();
+    }
+
+    internal static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddRabbitMq(configuration);
+
         services.AddScoped<IQueryExecutor, QueryExecutor>();
         services.AddScoped<IBookRepository, BookRepository>();
         services.Decorate<IBookRepository, BookRepositoryCacheDecorator>();
-        services.AddMemoryCache();
 
         services.AddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
         services.AddSingleton<ObjectPool<StringBuilder>>(serviceProvider =>
@@ -34,25 +51,18 @@ internal static class ServiceCollectionExtensions
         services.AddScoped<IDbConnection>(provider =>
         {
             var connectionString = configuration.GetConnectionString("Book");
-
             var connection = new SqlConnection(connectionString);
-            var logger = provider.GetService<ILogger<SqlConnection>>();
-
-            if (logger != null && logger.IsEnabled(LogLevel.Debug))
-            {
-                connection.StateChange += (sender, e) =>
-                {
-                    logger.LogDebug("SqlConnection Changed Status. [CurrentState: {CurrentState}; OriginalState: {OriginalState}; ConnectionId: {WorkstationId} {ClientConnectionId}]", e?.CurrentState, e?.OriginalState, connection?.WorkstationId, connection?.ClientConnectionId);
-                };
-
-                connection.InfoMessage += (sender, e) =>
-                {
-                    logger.LogDebug("SqlConnection InfoMessage. [Message: {Message}; ConnectionId: {WorkstationId} {ClientConnectionId}]", e?.Message, connection?.WorkstationId, connection?.ClientConnectionId);
-                };
-            }
 
             return connection;
         });
+
         return services;
+    }
+
+    internal static void AddRabbitMq(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<RabbitMqConfiguration>(configuration.GetSection(nameof(RabbitMqConfiguration)));
+
+        services.AddSingleton<IRabbitMqGetBookNotifier, RabbitMqGetBookNotifier>();
     }
 }

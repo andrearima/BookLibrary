@@ -1,4 +1,4 @@
-namespace BookLibrary.Royal.Integration.Tests
+namespace BookLibrary.Unit.Tests
 {
     public class UnitTest1
     {

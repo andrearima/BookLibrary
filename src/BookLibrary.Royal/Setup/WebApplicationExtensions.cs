@@ -8,9 +8,14 @@ internal static class WebApplicationExtensions
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddServices(builder.Configuration);
+        builder.Services.AddCors();
 
         var app = builder.Build();
 
+        app.UseCors(policies =>
+        {
+            policies.AllowAnyOrigin();
+        });
         app.UseSwagger();
         app.UseSwaggerUI();
 

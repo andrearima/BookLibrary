@@ -1,0 +1,152 @@
+﻿@page "/books"
+@using BookLibrary.Royal.UI.Models
+@inject HttpClient Http
+@inject IHttpBookLibraryClient bookClient
+
+<PageTitle>Book Library</PageTitle>
+
+<h1>Books</h1>
+
+<p>Search the book that you desire.</p>
+
+@if (books == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <EditForm class="form-group" Model="SearchBook" OnSubmit="Search">
+
+        <div class="form-group row">
+            <div class="form-group col-sm-5">
+                <label for="bookId" class="col-sm-2 col-form-label text-right">Id</label>
+                <div class="col-sm-10">
+                    <InputNumber id="bookId" class="form-control form-control-sm" @bind-Value="SearchBook.Id"></InputNumber>
+                </div>
+            </div>
+
+            <div class="form-group col-sm-5">
+                <label for="Title" class="col-sm-2 col-form-label text-right">Title</label>
+                <div class="col-sm-10">
+                    <InputText id="Title" class="form-control form-control-sm" @bind-Value="SearchBook.Title"></InputText>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="form-group col-sm-5">
+                <label for="FirstName" class="col-sm-2 col-form-label text-right">Author First Name</label>
+                <div class="col-sm-10">
+                    <InputText id="FirstName" class="form-control form-control-sm" @bind-Value="SearchBook.FirstName"></InputText>
+                </div>
+            </div>
+
+            <div class="form-group col-sm-5">
+                <label for="LastName" class="col-sm-2 col-form-label text-right">Author Last Name</label>
+                <div class="col-sm-10">
+                    <InputText id="LastName" class="form-control form-control-sm" @bind-Value="SearchBook.LastName"></InputText>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="form-group col-sm-5">
+                <label for="TotalCopies" class="col-sm-2 col-form-label text-right">Total Copies</label>
+                <div class="col-sm-10">
+                    <InputNumber id="TotalCopies" class="form-control form-control-sm" @bind-Value="SearchBook.TotalCopies"></InputNumber>
+                </div>
+            </div>
+
+            <div class="form-group col-sm-5">
+                <label for="CopiesInUse" class="col-sm-2 col-form-label text-right">Copies In Use</label>
+                <div class="col-sm-10">
+                    <InputNumber id="CopiesInUse" class="form-control form-control-sm" @bind-Value="SearchBook.CopiesInUse"></InputNumber>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="form-group col-sm-5">
+                <label for="Type" class="col-sm-2 col-form-label text-right">Type</label>
+                <div class="col-sm-10">
+                    <InputText id="Type" class="form-control form-control-sm" @bind-Value="SearchBook.Type"></InputText>
+                </div>
+            </div>
+
+            <div class="form-group col-sm-5">
+                <label for="Isbn" class="col-sm-2 col-form-label text-right">Isbn</label>
+                <div class="col-sm-10">
+                    <InputText id="Isbn" class="form-control form-control-sm" @bind-Value="SearchBook.Isbn"></InputText>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="form-group col-sm-5">
+                <label for="Category" class="col-sm-2 col-form-label text-right">Category</label>
+                <div class="col-sm-10">
+                    <InputText id="Category" class="form-control form-control-sm" @bind-Value="SearchBook.Category"></InputText>
+                </div>
+            </div>
+
+            <div class="form-group col-sm-5">
+                <label for="searchBtn" class="col-sm-2 col-form-label text-right"></label>
+                <div class="col-sm-10">
+                    <button id="searchBtn" class="btn btn-primary" type="submit">Search</button>
+                </div>
+            </div>
+        </div>
+
+
+
+
+    </EditForm>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Copies</th>
+                <th>In Use</th>
+                <th>Type</th>
+                <th>Isbn</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var book in books)
+            {
+                <tr>
+                    <td>@book.Id</td>
+                    <td>@book.Title</td>
+                    <td>@book.Author</td>
+                    <td>@book.TotalCopies</td>
+                    <td>@book.CopiesInUse</td>
+                    <td>@book.Type</td>
+                    <td>@book.Isbn</td>
+                    <td>@book.Category</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [SupplyParameterFromForm]
+    public SearchBook SearchBook { get; set; }
+
+    private IEnumerable<Book>? books;
+
+    protected override async Task OnInitializedAsync()
+    {
+        SearchBook ??= new SearchBook();
+        books = await bookClient.GetBooksAsync(null);
+    }
+
+    private async Task Search()
+    {
+        books = await bookClient.GetBooksAsync(SearchBook);
+    }
+}

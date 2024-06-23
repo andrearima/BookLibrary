@@ -39,3 +39,7 @@ Required appsettings configuration
     "Port": 5672
   }
 ```
+
+
+## UI
+- Added a Blazer UI as the WebApplication to consume the api with the search feature.

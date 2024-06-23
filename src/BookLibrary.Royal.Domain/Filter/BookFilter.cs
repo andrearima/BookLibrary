@@ -23,7 +23,7 @@ public class BookFilter
 
         if (Id.HasValue)
         {
-            queryBuilder.Append($" Where book_id = {Id.Value}");
+            queryBuilder.Append($" book_id = {Id.Value}");
             hasCondition = true;
         }
 
